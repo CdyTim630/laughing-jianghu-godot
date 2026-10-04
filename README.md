@@ -4,6 +4,8 @@
 
 你坐在武林大會的導播席，安排四名選手的單淘汰賽，再利用音樂、轉播與場地，讓結果導向較高收益，同時避免觀眾揭穿黑箱。
 
+[下載試玩包與原始碼](https://github.com/CdyTim630/laughing-jianghu-godot/releases/tag/v0.1.0)
+
 ## 開始遊玩
 
 - 無須安裝 Godot：在同一交付資料夾的 `笑嗷江糊_Web` 中，雙擊 `開始遊戲.command`。這個 Mac 啟動器需要 Python 3，會啟動只綁定本機的網頁伺服器並開啟 Chrome。
