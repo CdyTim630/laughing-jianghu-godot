@@ -4,7 +4,7 @@
 
 你坐在武林大會的導播席，安排四名選手的單淘汰賽，再利用音樂、轉播與場地，讓結果導向較高收益，同時避免觀眾揭穿黑箱。
 
-[下載試玩包與原始碼](https://github.com/CdyTim630/laughing-jianghu-godot/releases/tag/v0.1.0)
+[直接在 itch.io 遊玩](https://cdytim630.itch.io/laughing-jianghu) · [下載試玩包與原始碼](https://github.com/CdyTim630/laughing-jianghu-godot/releases/tag/v0.1.0)
 
 ## 開始遊玩
 
