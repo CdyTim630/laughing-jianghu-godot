@@ -1,3 +1,6 @@
 .godot/
 .DS_Store
 export_credentials.cfg
+
+# Godot generates imports for documentation screenshots.
+docs/*.import
