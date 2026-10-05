@@ -10,6 +10,10 @@ var effects: Array = []
 var pulse: float = 0.0
 var music_gag: float = 0.0
 var gag_side: int = 0
+# Sample simulation time, so pause and decision windows do not invent history.
+var support_history: Array[Vector2] = []
+var history_match: int = -1
+var last_support_sample: float = -1.0
 const PAPER := Color("ecdfc2")
 const INK := Color("222b2d")
 const GOLD := Color("c9a365")
@@ -33,12 +37,26 @@ func _ready() -> void:
   sprites.append(atlas)
 
 func _process(delta: float) -> void:
+ sample_support()
  clock += delta
  pulse = maxf(0,pulse-delta)
  music_gag = maxf(0,music_gag-delta)
  for e in effects: e.life -= delta
  effects = effects.filter(func(e: Dictionary) -> bool: return float(e.life)>0.0)
  queue_redraw()
+
+func sample_support() -> void:
+ if model == null: return
+ if history_match != model.match_index or model.elapsed < last_support_sample:
+  support_history.clear()
+  history_match = model.match_index
+  last_support_sample = -1.0
+ if support_history.is_empty() or model.elapsed-last_support_sample >= 0.5:
+  support_history.append(Vector2(model.elapsed,model.prediction()))
+  last_support_sample = model.elapsed
+  # Retain only samples within the last 30 simulation seconds.
+  while not support_history.is_empty() and support_history[0].x < model.elapsed-30.0:
+   support_history.pop_front()
 
 func react(kind: String, side: int, amount: int) -> void:
  if kind == "hit":
@@ -86,8 +104,15 @@ func _draw() -> void:
  for n in range(28):
   var cx: float=n*w/27.0
   var cy: float=ground-22+sin(n*2.4)*6
-  draw_circle(Vector2(cx,cy),7,Color("636958"))
-  draw_line(Vector2(cx-6,cy+8),Vector2(cx+7,cy+8),Color("636958"),12)
+  var support: float = model.prediction() if n < 14 else 1.0-model.prediction()
+  var crowd_color := Color("a54e33") if support > 0.53 else Color("636958")
+  var cheer: float = sin(clock*6+n)*maxf(0.0,support-.48)*35.0
+  cy -= absf(cheer)
+  draw_circle(Vector2(cx,cy),7,crowd_color)
+  draw_line(Vector2(cx-6,cy+8),Vector2(cx+7,cy+8),crowd_color,12)
+  if support > .53:
+   draw_line(Vector2(cx-5,cy+9),Vector2(cx-12,cy-6+cheer),crowd_color,3)
+   draw_line(Vector2(cx+5,cy+9),Vector2(cx+12,cy-6+cheer),crowd_color,3)
  for n in range(10):
   var x: float = n*w/9
   draw_line(Vector2(x,ground),Vector2(x-35,h),Color(1,1,1,.06),2)
@@ -125,8 +150,10 @@ func _draw() -> void:
    draw_string(font,pos,"♪",HORIZONTAL_ALIGNMENT_LEFT,-1,30,Color("b95137"))
  if pulse>0: draw_rect(Rect2(Vector2.ZERO,size),Color(1,.9,.65,pulse*.7))
  draw_string(font,Vector2(22,37),model.ARENAS[arena].name,HORIZONTAL_ALIGNMENT_LEFT,-1,22,INK)
- draw_circle(Vector2(w-75,28),5,Color("bf4636"))
- draw_string(font,Vector2(w-63,34),"LIVE",HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("9c4838"))
+ if model.state == "cast":
+  draw_circle(Vector2(w-75,28),5,Color("bf4636"))
+  draw_string(font,Vector2(w-63,34),"LIVE",HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("9c4838"))
+
 
 func paint_oval(pos: Vector2, radius: Vector2, color: Color) -> void:
  var points := PackedVector2Array()
