@@ -39,6 +39,12 @@ func check_pages() -> void:
  assert(ui.arena.backgrounds[1] != ui.arena.backgrounds[2])
  for texture in ui.arena.backgrounds:
   assert(texture.get_width() == 1672 and texture.get_height() == 941)
+ # Render exactly on a history sample timestamp, including duplicate end points.
+ ui.model.elapsed = 20.0
+ ui.update_hud()
+ await process_frame
+ await process_frame
+ if DisplayServer.get_name() != "headless": await RenderingServer.frame_post_draw
  ui.arena.effects.clear()
  ui.arena.react("hit",1,6)
  ui.model.elapsed = 19.85

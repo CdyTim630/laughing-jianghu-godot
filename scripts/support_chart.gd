@@ -41,10 +41,12 @@ func _draw() -> void:
   points.append(Vector2(plot.position.x+(sample.x-start_time)/30.0*plot.size.x,plot.end.y-(support-low)/(high-low)*plot.size.y))
  points.append(Vector2(plot.end.x,plot.end.y-(value-low)/(high-low)*plot.size.y))
  if points.size() > 1:
-  var fill := PackedVector2Array([Vector2(points[0].x,plot.end.y)])
-  fill.append_array(points)
-  fill.append(Vector2(plot.end.x,plot.end.y))
-  if fill.size() >= 4 and points[0].x < plot.end.x:
-   draw_colored_polygon(fill,Color(color,0.09))
+  # Draw one simple strip per interval. A sample can share the current
+  # timestamp, so a single filled polygon may contain duplicate vertices.
+  for i in range(1,points.size()):
+   var left := points[i-1]
+   var right := points[i]
+   if right.x-left.x <= 0.001: continue
+   draw_colored_polygon(PackedVector2Array([Vector2(left.x,plot.end.y),left,right,Vector2(right.x,plot.end.y)]),Color(color,0.09))
   draw_polyline(points,color,2.5,true)
  draw_circle(points[points.size()-1],2.5,color)

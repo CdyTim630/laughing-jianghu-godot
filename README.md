@@ -96,3 +96,6 @@ godot --headless --path . --export-release Web ../笑嗷江糊_Web/index.html
 ## 素材與授權
 
 請見 `LICENSES.md`。封面、肖像與戰鬥人物為本專案生成的 AI 圖；場地背景使用內建 imagegen；戰鬥動態、圖示和音樂／音效由程式製作。字型為 Noto Sans TC，已附 SIL Open Font License。
+
+### v0.2.2
+支持度曲線改以獨立區段填色，避免取樣時間重複時產生無效多邊形。滿版介面與玩法保持一致。
