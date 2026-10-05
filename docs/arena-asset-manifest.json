@@ -1,6 +1,6 @@
 {
   "engine": "Godot 4.7.2 Compatibility",
-  "display": "1600x900 reference, 1280x720 default, 16:9 keep",
+  "display": "1600x900 reference, 1280x720 default, expand to fill display",
   "art_direction": "front-facing painted wuxia tournament, jade teal/vermilion/honey gold; quiet pale stage; crisp ink-edged sprites",
   "assets": [
     {

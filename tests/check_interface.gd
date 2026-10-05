@@ -60,11 +60,12 @@ func check_pages() -> void:
  ui.update_hud()
  await capture(ui,"battle-echo-preview.png")
  # Aspect changes must preserve the logical layout and all three operation panels.
- for viewport in [Vector2i(960,540),Vector2i(1280,720),Vector2i(1920,1080)]:
+ for viewport in [Vector2i(960,540),Vector2i(1280,720),Vector2i(1920,1080),Vector2i(1280,960)]:
   root.size = viewport
   await process_frame
   await process_frame
-  assert(ui.arena.size.y >= 390)
+  assert(ui.arena.get_rect() == Rect2(Vector2.ZERO,ui.page.size))
+  assert(ui.page.find_children("MusicHUD", "PanelContainer", true, false).size() == 1)
   for b in ui.music_buttons:
    assert(b.get_global_rect().end.x <= ui.size.x+1)
    assert(b.get_global_rect().end.y <= ui.size.y+1)
@@ -75,7 +76,17 @@ func check_pages() -> void:
  ui.model.dialog_time = 5.0
  ui.on_state()
  await capture(ui,"cast-preview.png")
+ assert(ui.overlay.get_child_count() == 1)
+ assert(ui.overlay.get_child(0).name == "BroadcastHUD")
+ assert(not ui.attack_hud.visible)
+ var live_panel: Control = ui.overlay.get_child(0)
+ assert(live_panel.get_global_rect().end.y <= ui.size.y)
+ for b in live_panel.find_children("*","Button",true,false):
+  assert(b.get_global_rect().end.y <= ui.size.y)
+  assert(b.get_global_rect().end.x <= ui.size.x)
  ui.model.comment(3,0)
+ assert(ui.overlay.get_child_count() == 0)
+ assert(ui.attack_hud.visible)
  ui.update_hud()
  ui.model.state = "midfield"
  ui.model.elapsed = 45.0
@@ -85,6 +96,9 @@ func check_pages() -> void:
  ui.choose_arena(1)
  assert(ui.model.arena_index == 1)
  assert(ui.model.state == "battle")
+ ui.show_ledger()
+ await capture(ui,"ledger-preview.png")
+ ui.close_help()
  ui.show_help()
  await capture(ui,"help-preview.png")
  ui.close_help()

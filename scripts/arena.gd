@@ -73,14 +73,16 @@ func _draw() -> void:
  if model == null: return
  var w: float = size.x
  var h: float = size.y
- var ground: float = h*0.91
+ var ground: float = h*0.755
  var location: int = model.arena_index
  if backgrounds.size() == 3:
   var background: Texture2D = backgrounds[location]
   # A panoramic crop keeps architecture proportions and the stone stage visible.
   var source_h: float = minf(background.get_height(),background.get_width()*h/maxf(1,w))
+  var source_w: float = minf(background.get_width(),background.get_height()*w/maxf(1,h))
   var source_y: float = (background.get_height()-source_h)*0.42
-  draw_texture_rect_region(background,Rect2(Vector2.ZERO,size),Rect2(0,source_y,background.get_width(),source_h))
+  var source_x: float = (background.get_width()-source_w)*0.5
+  draw_texture_rect_region(background,Rect2(Vector2.ZERO,size),Rect2(source_x,source_y,source_w,source_h))
  else:
   draw_rect(Rect2(Vector2.ZERO,size),PAPER)
  # A soft floor wash separates actors from detailed scenery without hiding the art.
@@ -98,7 +100,7 @@ func _draw() -> void:
  var local: float = fmod(model.elapsed,3.0)
  var active: bool = model.state == "battle"
  for side in range(2):
-  var x: float = w*(.32 if side == 0 else .68)
+  var x: float = w*(.25 if side == 0 else .75)
   var lunge: float = sin(clampf((local-1.45)/.9,0,1)*PI)*w*.09 if side == attack and active else 0.0
   x += lunge*(1 if side == 0 else -1)
   if side == attack and active and local < 1.6:
@@ -106,7 +108,7 @@ func _draw() -> void:
    draw_arc(Vector2(x,ground-4),h*.18,-PI*.9,-PI*.9+clampf(local/1.6,0,1)*TAU,48,Color("e28c36"),4,true)
   fighter(side,Vector2(x,ground-7),1 if side == 0 else -1,local,side == attack)
  if active and local >= 1.6 and local < 2.4:
-  var center := Vector2(w*.5,ground-h*.36)
+  var center := Vector2(w*.5,ground-h*.23)
   var ink_color := Color(model.FIGHTERS[model.pair[attack]].color)
   var sweep: float = clampf((local-1.6)/.8,0,1)
   for line in range(5):
@@ -119,35 +121,28 @@ func _draw() -> void:
   var phase: int = model.attack_phase()
   var tag: String = ["蓄勢", "出招！", "收招"][phase]
   var tint: Color = Color("b74830") if phase == 1 else Color("204747")
-  var seal := Rect2(w*.5-77,20,154,54)
+  var seal := Rect2(w*.5-77,h*.30,154,54)
   draw_style_box(seal_style(tint),seal)
-  draw_string(font,Vector2(w*.5-70,58),tag,HORIZONTAL_ALIGNMENT_CENTER,140,30,PAPER)
+  draw_string(font,Vector2(w*.5-70,h*.30+38),tag,HORIZONTAL_ALIGNMENT_CENTER,140,30,PAPER)
  for e in effects:
   var alpha: float = minf(1,float(e.life)*3)
-  var y: float = ground-h*.65-(1.1-float(e.life))*75
-  var x: float = w*(.32 if int(e.side) == 0 else .68)
+  var y: float = ground-h*.45-(1.1-float(e.life))*75
+  var x: float = w*(.25 if int(e.side) == 0 else .75)
   var text: String = "−%d" % int(e.amount)
   draw_string_outline(font,Vector2(x-38,y),text,HORIZONTAL_ALIGNMENT_LEFT,-1,58,7,Color(1,.98,.84,alpha))
   draw_string(font,Vector2(x-38,y),text,HORIZONTAL_ALIGNMENT_LEFT,-1,58,Color(.82,.17,.1,alpha))
  if music_gag > 0:
-  var x: float = w*(.32 if gag_side == 0 else .68)
+  var x: float = w*(.25 if gag_side == 0 else .75)
   for n in range(3):
-   var pos := Vector2(x-80+n*70,ground-h*.78+sin(clock*5+n)*12)
+   var pos := Vector2(x-80+n*70,ground-h*.50+sin(clock*5+n)*12)
    draw_string_outline(font,pos,"♪",HORIZONTAL_ALIGNMENT_LEFT,-1,42,4,PAPER)
    draw_string(font,pos,"♪",HORIZONTAL_ALIGNMENT_LEFT,-1,42,Color("b74830"))
   var caption: String = ["燃起來了！","怎麼跳起來了？","心如止水…"][model.music_index]
-  draw_style_box(seal_style(Color("284e46")),Rect2(w*.5-145,h-59,290,44))
-  draw_string(font,Vector2(w*.5-137,h-27),caption,HORIZONTAL_ALIGNMENT_CENTER,274,23,PAPER)
+  draw_style_box(seal_style(Color("284e46")),Rect2(w*.5-145,h*.68,290,44))
+  draw_string(font,Vector2(w*.5-137,h*.68+32),caption,HORIZONTAL_ALIGNMENT_CENTER,274,23,PAPER)
  if pulse > 0:
   # Restrained flash, never a camera movement or gameplay interruption.
   draw_rect(Rect2(Vector2.ZERO,size),Color(1,.94,.72,pulse*.35))
- var scene_label: String = ["山門石台","油滑竹林","回音山谷"][location]
- draw_style_box(seal_style(Color("243e3a")),Rect2(16,16,170,43))
- draw_string(font,Vector2(26,46),scene_label,HORIZONTAL_ALIGNMENT_CENTER,150,21,PAPER)
- if model.state == "cast":
-  draw_style_box(seal_style(Color("aa3f32")),Rect2(w-113,16,97,43))
-  draw_circle(Vector2(w-95,37),4,PAPER)
-  draw_string(font,Vector2(w-83,44),"LIVE",HORIZONTAL_ALIGNMENT_LEFT,-1,20,PAPER)
 
 func seal_style(fill: Color) -> StyleBoxFlat:
  var style := StyleBoxFlat.new()
@@ -180,7 +175,7 @@ func fighter(side: int, at: Vector2, direction: int, phase: float, attacking: bo
  if hurt:
   at.x-=direction*18
   angle=-.11
- var sprite_h: float=size.y*.83
+ var sprite_h: float=size.y*.48
  var sprite_w: float=sprite_h*sprites[id].get_width()/sprites[id].get_height()
  paint_oval(at+Vector2(0,5),Vector2(sprite_w*.30,12),Color(0,0,0,.22))
  var squash: float=1.0+sin(clock*4)*.014
