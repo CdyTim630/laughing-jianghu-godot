@@ -39,6 +39,8 @@ var mute_button: Button
 var phase_bar: ProgressBar
 var regular_font: FontVariation
 var bold_font: FontVariation
+var selected_song_style: StyleBoxFlat
+var disabled_song_style: StyleBoxFlat
 var music_texture: Texture2D
 var selected_fighter: int = 0
 var character_preview: VBoxContainer
@@ -63,6 +65,8 @@ func _ready() -> void:
  skin.set_stylebox("pressed","Button",button_box(Color("784333"),RED,2,7))
  skin.set_stylebox("disabled","Button",button_box(Color("20292d"),Color("37423f"),1,7))
  skin.set_stylebox("focus","Button",button_box(Color(0,0,0,0),GOLD,3,7))
+ selected_song_style = button_box(Color("344d48"),GOLD,2,7)
+ disabled_song_style = button_box(Color("20292d"),Color("37423f"),1,7)
  theme = skin
  model = Model.new()
  model.state_changed.connect(on_state)
@@ -184,8 +188,8 @@ func scaffold(title: String, subtitle: String) -> VBoxContainer:
  page.add_child(background)
  var margin := MarginContainer.new()
  margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- for side in ["left","right"]: margin.add_theme_constant_override("margin_"+side,28)
- for side in ["top","bottom"]: margin.add_theme_constant_override("margin_"+side,20)
+ for side in ["left","right"]: margin.add_theme_constant_override("margin_"+side,24)
+ for side in ["top","bottom"]: margin.add_theme_constant_override("margin_"+side,16)
  page.add_child(margin)
  var root := vbox(14)
  margin.add_child(root)
@@ -238,7 +242,7 @@ func show_menu() -> void:
  var row := hbox()
  margin.add_child(row)
  var left := vbox(16)
- left.custom_minimum_size.x = 600
+ left.custom_minimum_size.x = 650
  row.add_child(left)
  left.add_child(label("一場正經武林大會，一位不正經主持人。",20,GOLD))
  left.add_child(spacer())
@@ -349,7 +353,7 @@ func show_setup() -> void:
   num.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   place.add_child(num)
   place.add_child(next)
-  content.add_child(portrait(id,145))
+  content.add_child(portrait(id,160))
   content.add_child(label(model.FIGHTERS[id].name,22,INK))
   
   content.add_child(label("%s" % model.FIGHTERS[id].trait,17,Color("806139")))
@@ -379,7 +383,7 @@ func update_character_preview() -> void:
  clear_children(character_preview)
  var fighter: Dictionary = model.FIGHTERS[selected_fighter]
  character_preview.add_child(label("角色展示",22,GOLD))
- character_preview.add_child(portrait(selected_fighter,245))
+ character_preview.add_child(portrait(selected_fighter,210))
  character_preview.add_child(label(fighter.name,28))
  character_preview.add_child(label(fighter.brief,19,MUTED))
  character_preview.add_child(label("性格 · %s" % fighter.trait,21,GOLD))
@@ -413,155 +417,152 @@ func show_battle() -> void:
  current_page = "battle"
  clear_page()
  var root := scaffold(model.match_title(),"")
- var body := hbox(16)
- body.size_flags_vertical = Control.SIZE_EXPAND_FILL
- root.add_child(body)
- var left := vbox(9)
- left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- body.add_child(left)
+ root.add_theme_constant_override("separation",10)
+ var hp_row := hbox(14)
+ root.add_child(hp_row)
  var support_charts: Array[Control] = []
- var hp_row := hbox(18)
- left.add_child(hp_row)
  for side in range(2):
   if side == 1:
-   var booth := panel(Color("313b32"),GOLD)
-   booth.custom_minimum_size.x = 240
+   var booth := panel(Color("214b4b"),GOLD)
+   booth.custom_minimum_size.x = 260
    hp_row.add_child(booth)
    var booth_box := vbox(4)
    booth.add_child(booth_box)
-   booth_box.add_child(label("轉播台",24,GOLD))
-   prediction_label = label("",17)
+   var heading := label("轉播台",26,GOLD)
+   heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+   booth_box.add_child(heading)
+   prediction_label = label("",19)
+   prediction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
    booth_box.add_child(prediction_label)
-   cast_label = label("",16,MUTED)
+   cast_label = label("",18,MUTED)
+   cast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
    booth_box.add_child(cast_label)
-  var id: int=model.pair[side]
-  var p := panel(Color("263334"),Color(model.FIGHTERS[id].color))
+  var id: int = model.pair[side]
+  var p := panel(Color("203338"),Color(model.FIGHTERS[id].color))
   p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   hp_row.add_child(p)
-  var row := hbox(10)
+  var row := hbox(12)
   p.add_child(row)
-  var face:=portrait(id,48)
-  face.custom_minimum_size.x=48
+  var face := portrait(id,84)
+  face.custom_minimum_size.x = 75
   row.add_child(face)
-  var v := vbox(4)
-  v.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-  row.add_child(v)
-  var l := label("",22)
-  hp_labels.append(l)
-  v.add_child(l)
+  var info := vbox(4)
+  info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  row.add_child(info)
+  var hp := label("",26)
+  hp_labels.append(hp)
+  info.add_child(hp)
   var bar := make_bar(Color(model.FIGHTERS[id].color),100)
-  bar.custom_minimum_size.y=12
+  bar.custom_minimum_size.y = 15
   hp_bars.append(bar)
-  v.add_child(bar)
+  info.add_child(bar)
   var chart := SupportChart.new()
   chart.side = side
-  chart.custom_minimum_size = Vector2(0,76)
-  v.add_child(chart)
+  chart.custom_minimum_size.y = 60
+  info.add_child(chart)
   support_charts.append(chart)
  arena = ArenaView.new()
+ arena.name = "BattleStage"
  arena.model = model
- arena.custom_minimum_size.y = 340
+ arena.custom_minimum_size.y = 390
  arena.size_flags_vertical = Control.SIZE_EXPAND_FILL
- left.add_child(arena)
+ root.add_child(arena)
  for chart in support_charts: chart.arena = arena
- var timing := hbox(12)
- left.add_child(timing)
- clock_label = label("",20,GOLD)
- clock_label.custom_minimum_size.x=170
- timing.add_child(clock_label)
- phase_label = label("",20,PAPER)
- phase_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- timing.add_child(phase_label)
- phase_bar = make_bar(GOLD,3)
- phase_bar.custom_minimum_size.x = 170
- timing.add_child(phase_bar)
- var controls := hbox(10)
- left.add_child(controls)
- var music_panel := panel()
+ var controls := hbox(12)
+ root.add_child(controls)
+ var music_panel := panel(Color("203338"))
  music_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- music_panel.size_flags_stretch_ratio=2
+ music_panel.size_flags_stretch_ratio = 2.3
  controls.add_child(music_panel)
  var music_box := vbox(5)
  music_panel.add_child(music_box)
  var music_title := hbox(8)
  music_box.add_child(music_title)
- music_title.add_child(icon("music",24))
- music_title.add_child(label("切歌",22,GOLD))
- target_label = label("",17,MUTED)
- target_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL
- target_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
+ music_title.add_child(icon("music",25))
+ music_title.add_child(label("切歌",24,GOLD))
+ target_label = label("",18,MUTED)
+ target_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
  music_title.add_child(target_label)
- var buttons := hbox(6)
- music_box.add_child(buttons)
+ var songs := hbox(8)
+ music_box.add_child(songs)
  for index in range(3):
   var b := icon_button(["fire","comic","calm"][index],["熱血","滑稽","舒緩"][index],use_music.bind(index))
-  b.add_theme_font_size_override("font_size",18)
+  b.custom_minimum_size.y = 48
+  b.add_theme_font_size_override("font_size",22)
   music_buttons.append(b)
-  buttons.add_child(b)
- music_label = label("",16,PAPER)
+  songs.add_child(b)
+ music_label = label("",17,PAPER)
  music_box.add_child(music_label)
- var attack_panel := panel()
+ var attack_panel := panel(Color("203338"))
  attack_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
  attack_panel.size_flags_stretch_ratio = 2
  controls.add_child(attack_panel)
- var attack_box := vbox(8)
+ var attack_box := vbox(7)
  attack_panel.add_child(attack_box)
- attack_box.add_child(label("攻擊狀態",22,GOLD))
- timing.reparent(attack_box)
- clock_label.custom_minimum_size.x = 0
- phase_bar.custom_minimum_size.x = 70
- attack_box.add_child(label("蓄勢 1.6s → 出招 0.6s → 收招 0.8s",16,MUTED))
- var arena_panel := panel()
+ var timing := hbox(10)
+ attack_box.add_child(timing)
+ timing.add_child(icon("sword",25))
+ phase_label = label("",24,GOLD)
+ timing.add_child(phase_label)
+ phase_bar = make_bar(GOLD,3)
+ phase_bar.custom_minimum_size.y = 12
+ attack_box.add_child(phase_bar)
+ log_label = label("",19)
+ log_label.custom_minimum_size.y = 28
+ log_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+ log_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+ attack_box.add_child(log_label)
+ attack_box.add_child(label("蓄勢 → 出招 → 收招",17,MUTED))
+ var arena_panel := panel(Color("203338"))
  arena_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ arena_panel.size_flags_stretch_ratio = 1
  controls.add_child(arena_panel)
- var arena_box := vbox(8)
+ var arena_box := vbox(5)
  arena_panel.add_child(arena_box)
- arena_box.add_child(icon("arena",30))
- arena_label = label("",19,GOLD)
- arena_box.add_child(arena_label)
- arena_box.add_child(label("45 秒換場",16,MUTED))
- var ticker := panel(Color("182428"),Color("384941"))
- left.add_child(ticker)
- log_label = label("",18,PAPER)
- log_label.custom_minimum_size.y = 30
- ticker.add_child(log_label)
- var right := panel(Color("1b2729"),GOLD)
- right.custom_minimum_size.x = 235
- body.add_child(right)
- var ledger := vbox(12)
- right.add_child(ledger)
- var account_title:=hbox(8)
- ledger.add_child(account_title)
- account_title.add_child(icon("coin",30))
- account_title.add_child(label("冠軍收益",25,GOLD))
+ var arena_title := hbox(8)
+ arena_box.add_child(arena_title)
+ arena_title.add_child(icon("arena",25))
+ arena_label = label("",24,GOLD)
+ arena_title.add_child(arena_label)
+ clock_label = label("",22)
+ arena_box.add_child(clock_label)
+ arena_box.add_child(label("45 秒換場",17,MUTED))
+ var footer := hbox(10)
+ root.add_child(footer)
+ var account := panel(Color("1b2c30"))
+ account.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ account.size_flags_stretch_ratio = 3
+ footer.add_child(account)
+ var ledger := hbox(14)
+ account.add_child(ledger)
+ ledger.add_child(icon("coin",27))
  for id in range(4):
-  var row:=hbox(8)
-  ledger.add_child(row)
-  var face:=portrait(id,50)
-  face.custom_minimum_size.x=42
-  row.add_child(face)
   var l := label("",19)
-  l.tooltip_text="鎖定賠率 ×%.1f / 投注 %d" % [model.FIGHTERS[id].odds,model.FIGHTERS[id].stake]
-  l.mouse_filter=Control.MOUSE_FILTER_PASS
+  l.tooltip_text = "冠軍收益 / 鎖定賠率 ×%.1f / 投注 %d" % [model.FIGHTERS[id].odds,model.FIGHTERS[id].stake]
+  l.mouse_filter = Control.MOUSE_FILTER_PASS
   ledger_labels.append(l)
-  row.add_child(l)
- ledger.add_child(spacer())
- var risk_title:=hbox(8)
- ledger.add_child(risk_title)
- risk_title.add_child(icon("eye",30))
- suspicion_label = label("",24,RED)
- risk_title.add_child(suspicion_label)
+  ledger.add_child(l)
+ var risk := panel(Color("382d30"),RED)
+ risk.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ footer.add_child(risk)
+ var risk_box := hbox(10)
+ risk.add_child(risk_box)
+ risk_box.add_child(icon("eye",26))
+ suspicion_label = label("",21,RED)
+ suspicion_label.custom_minimum_size.x = 135
+ risk_box.add_child(suspicion_label)
  suspicion_bar = make_bar(RED,100)
- suspicion_bar.custom_minimum_size.y=14
- ledger.add_child(suspicion_bar)
- var risk_note:=label("100 = 穿幫",17,MUTED)
- risk_note.tooltip_text="切歌 +8 / 偏心轉播 +10 / 換場 +12\n10 秒內連續操作額外 +6。穿幫退注並賠償 200。"
- risk_note.mouse_filter=Control.MOUSE_FILTER_PASS
- ledger.add_child(risk_note)
+ suspicion_bar.custom_minimum_size.x = 80
+ suspicion_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ suspicion_bar.tooltip_text = "100 = 穿幫。切歌 +8 / 偏心轉播 +10 / 換場 +12；連動另 +6。"
+ suspicion_bar.mouse_filter = Control.MOUSE_FILTER_PASS
+ risk_box.add_child(suspicion_bar)
  var fast := button("×1",toggle_speed)
+ fast.custom_minimum_size.x = 65
+ fast.size_flags_horizontal = Control.SIZE_SHRINK_END
  fast.name = "SpeedButton"
- fast.tooltip_text="快轉戰鬥；決策仍有 5 秒。"
- ledger.add_child(fast)
+ fast.tooltip_text = "快轉戰鬥；決策仍有 5 秒。"
+ footer.add_child(fast)
  update_hud()
 
 func make_bar(color: Color, max_value: float) -> ProgressBar:
@@ -587,20 +588,21 @@ func update_hud() -> void:
   hp_bars[side].value = model.hp[side]
  var alive: Array = model.alive_ids()
  for id in range(4):
-  ledger_labels[id].text = "%s ×%.1f\n收益 %+d" % [short_names[id],model.FIGHTERS[id].odds,model.projected_profit(id)]
+  ledger_labels[id].text = "%s  %+d" % [short_names[id],model.projected_profit(id)]
   ledger_labels[id].modulate = Color.WHITE if id in alive else Color(.4,.4,.4,1)
  clock_label.text = "%s  %02d:%02d" % ["下半" if model.midfield_done else "上半",int(model.elapsed)/60,int(model.elapsed)%60]
- phase_label.text = "%s → %s %.1fs" % [short_names[model.pair[model.attacker_side()]],["蓄勢","出招","收招"][model.attack_phase()],maxf(0.0,[1.6,2.2,3.0][model.attack_phase()]-fmod(model.elapsed,3.0))]
+ phase_label.text = "%s · %s %.1fs" % [short_names[model.pair[model.attacker_side()]],["蓄勢","出招","收招"][model.attack_phase()],maxf(0.0,[1.6,2.2,3.0][model.attack_phase()]-fmod(model.elapsed,3.0))]
  phase_bar.value = fmod(model.elapsed,3.0)
  suspicion_bar.value = model.suspicion
- suspicion_label.text = "%d / 100" % model.suspicion
+ suspicion_label.text = "懷疑 %d / 100" % model.suspicion
  suspicion_label.modulate=Color(1,.65,.3) if model.suspicion>=80 else Color.WHITE
  var target: int = model.music_target()
  var defense: bool = model.attack_phase()==1
  target_label.text = "%s · %s" % [short_names[model.pair[target]],"防禦" if defense else "攻擊"]
  for i in range(3):
   music_buttons[i].text="%s %+d" % [["熱血","滑稽","舒緩"][i],model.music_effect(i)]
-  music_buttons[i].modulate=GOLD if i==model.music_index else Color.WHITE
+  music_buttons[i].add_theme_color_override("font_disabled_color",GOLD if i==model.music_index else MUTED)
+  music_buttons[i].add_theme_stylebox_override("disabled",selected_song_style if i==model.music_index else disabled_song_style)
   music_buttons[i].disabled = paused or model.state!="battle" or model.cooldown>0 or i==model.music_index
   music_buttons[i].tooltip_text = "[%d] %s %+d / 懷疑 +8%s" % [i+1,"防禦" if defense else "攻擊",model.music_effect(i),"，連動另 +6" if model.tournament_time-model.last_operation<10 else ""]
  music_label.text = "%s  ·  %s" % [["熱血","滑稽","舒緩"][model.music_index],"%d 秒" % ceili(model.cooldown) if model.cooldown>0 else "可切換 +8"]
@@ -632,7 +634,7 @@ func popup(title: String, subtitle: String, width: int = 920) -> VBoxContainer:
 
 func arena_dialog() -> void:
  var midfield: bool = model.state=="midfield"
- var v := popup("換場" if midfield else "選擇場地","懷疑 +12  ·  換一個場地" if midfield else "首次免費")
+ var v := popup("換場" if midfield else "選擇場地","懷疑 +12  ·  換一個場地" if midfield else "首次免費",1120)
  if midfield:
   dialog_clock = label("",20,RED)
   v.add_child(dialog_clock)
@@ -642,11 +644,17 @@ func arena_dialog() -> void:
  for i in range(3):
   var p := panel(Color("1d292c"))
   p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  p.custom_minimum_size.x = 278
+  p.custom_minimum_size.x = 348
   row.add_child(p)
   var col := vbox(10)
   p.add_child(col)
-  col.add_child(icon(["stone","oil","echo"][i],100))
+  var scenery := TextureRect.new()
+  scenery.texture = load(ArenaView.BACKGROUND_PATHS[i])
+  scenery.custom_minimum_size.y = 170
+  scenery.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+  scenery.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+  scenery.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  col.add_child(scenery)
   col.add_child(label(["石板","油滑","回音"][i],28,GOLD))
   col.add_child(label(["傷害不變","傷害 −1","轉播更強 ±1"][i],22,PAPER))
   var b := button("已用" if midfield and i==model.first_arena else "選擇",choose_arena.bind(i),true)

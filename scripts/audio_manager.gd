@@ -64,3 +64,10 @@ func toggle_mute() -> void:
 
 func set_music_volume(value: float) -> void:
  AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Music"),linear_to_db(maxf(value,0.001))-5.0)
+
+func _exit_tree() -> void:
+ if fade: fade.kill()
+ for child in get_children():
+  if child is AudioStreamPlayer:
+   child.stop()
+   child.stream = null

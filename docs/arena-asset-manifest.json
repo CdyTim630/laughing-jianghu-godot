@@ -1,0 +1,55 @@
+{
+  "engine": "Godot 4.7.2 Compatibility",
+  "display": "1600x900 reference, 1280x720 default, 16:9 keep",
+  "art_direction": "front-facing painted wuxia tournament, jade teal/vermilion/honey gold; quiet pale stage; crisp ink-edged sprites",
+  "assets": [
+    {
+      "path": "assets/art/arena-stone.png",
+      "role": "static tournament background",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "camera": "front-facing spectator eye height",
+      "alpha": false,
+      "filtering": "linear",
+      "collision": "none",
+      "source": "built-in imagegen, 2026-10-05",
+      "generation_reference": null,
+      "approval": "agent selected under user creative delegation; visually inspected in game",
+      "prompt_record": "docs/art-prompts.md"
+    },
+    {
+      "path": "assets/art/arena-oil.png",
+      "role": "static tournament background",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "camera": "front-facing spectator eye height",
+      "alpha": false,
+      "filtering": "linear",
+      "collision": "none",
+      "source": "built-in imagegen, 2026-10-05",
+      "generation_reference": "arena-stone.png",
+      "approval": "agent selected under user creative delegation; visually inspected in game",
+      "prompt_record": "docs/art-prompts.md"
+    },
+    {
+      "path": "assets/art/arena-echo.png",
+      "role": "static tournament background",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "camera": "front-facing spectator eye height",
+      "alpha": false,
+      "filtering": "linear",
+      "collision": "none",
+      "source": "built-in imagegen, 2026-10-05",
+      "generation_reference": "arena-stone.png",
+      "approval": "agent selected under user creative delegation; visually inspected in game",
+      "prompt_record": "docs/art-prompts.md"
+    }
+  ]
+}

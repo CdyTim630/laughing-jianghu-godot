@@ -18,9 +18,9 @@ func _draw() -> void:
  var font := get_theme_default_font()
  var color := Color(model.FIGHTERS[model.pair[side]].color)
  var value: float = model.prediction() if side == 0 else 1.0-model.prediction()
- draw_string(font,Vector2(0,18),"支持度 %d%%" % roundi(value*100),HORIZONTAL_ALIGNMENT_LEFT,-1,16,color)
+ draw_string(font,Vector2(0,18),"支持度 %d%%" % roundi(value*100),HORIZONTAL_ALIGNMENT_LEFT,-1,18,color)
  draw_string(font,Vector2(maxf(0,size.x-76),18),"最近 30 秒",HORIZONTAL_ALIGNMENT_LEFT,-1,13,MUTED)
- var plot := Rect2(25,28,maxf(1,size.x-30),43)
+ var plot := Rect2(25,27,maxf(1,size.x-30),maxf(10,size.y-31))
  var spread: float = absf(value-0.5)
  for sample in arena.support_history: spread = maxf(spread,absf(sample.y-0.5))
  spread = minf(0.5,maxf(0.04,spread+0.02))
@@ -46,5 +46,5 @@ func _draw() -> void:
   fill.append(Vector2(plot.end.x,plot.end.y))
   if fill.size() >= 4 and points[0].x < plot.end.x:
    draw_colored_polygon(fill,Color(color,0.09))
-  draw_polyline(points,color,2,true)
+  draw_polyline(points,color,2.5,true)
  draw_circle(points[points.size()-1],2.5,color)
